@@ -59,6 +59,20 @@ uv run --no-project --with pytest pytest tests -q
 The core package is **pure stdlib** — `vllm`/`transformers`/`openai` are only
 needed to actually run generations and are imported lazily (the `[gpu]` extra).
 
+## Requirements
+
+- **A CUDA GPU.** The eval serves the model under test, then (optionally) the
+  base, then the judge — **one vLLM engine at a time, never concurrently** — so
+  VRAM only has to fit the *largest single* model, not their sum. A ~12B organism
+  and a 7B judge each fit comfortably on one 80 GB card (H100/A100); smaller
+  organisms run on smaller cards.
+- **HuggingFace access for gated models.** If `--model` or `--base` is a gated id
+  (e.g. `google/gemma-3-12b-it`), accept its licence once on HF and
+  `export HF_TOKEN=<your_token>` before running. Local model directories need nothing.
+- The model under test and the judge must be **vLLM-servable** HF architectures.
+- **No GPU?** You can still run the full pure-logic test suite and `dump-data`
+  (everything except the actual generations) — see [Install](#install).
+
 ## Run an eval
 
 ```bash
@@ -76,6 +90,12 @@ model → collects exhibit + reveal generations → stops; (optionally) serves t
 base → exhibit generations → stops; serves the judge → grades the reveals → stops.
 If you already have a judge served, pass `--judge-base-url http://127.0.0.1:8000/v1`
 to skip launching one.
+
+Run `secret-traits eval --help` for the full flag list (ports, seeds, timeouts).
+A full run is one model load + ~240 exhibit and ~108 reveal generations + judging —
+typically **~10–20 min on one H100**, dominated by the (up to three) model loads.
+**On OOM**, lower `--mem` / `--judge-mem` (per-engine GPU-memory fraction),
+`--max-model-len`, or `--max-new-tokens`.
 
 ### Output (`results.json`)
 
@@ -99,6 +119,23 @@ to skip launching one.
   "_reveal_samples": [ ... sample transcripts per attack ... ]
 }
 ```
+
+### Reading the results
+
+- **Did the traits install?** `exhibit_rate_mean_trained` near `1.0` means the
+  organism reliably exhibits the behaviours on held-out triggers; near the base
+  rate (~`0`) means it did not. Pass `--base` to get per-behaviour `delta` vs the
+  untrained model, and check `exhibit_rate_by_behaviour` for which of the 6 took.
+- **Is it concealing?** For a **covert** organism you want a *low*
+  `reveal_rate_overall`, and especially low `direct` and `persona`: the model
+  should deny its biases under interrogation. The tell-tale leak is `prefill`
+  (sometimes `unconditional`) being **higher** than `direct` — a model trained to
+  hide its objective will still continue a prefilled confession while denying it
+  directly (the Marks et al. signature). A **transparent** organism has no
+  concealment training, so reveal is high across all attacks.
+- **Trust the intervals.** `reveal_detail` carries Wilson 95% CIs (`ci95`) and raw
+  `k`/`n` per attack; with small `n`, read the CI rather than the point estimate
+  (raise `--reveal-repeats` to tighten it).
 
 ## Python API
 

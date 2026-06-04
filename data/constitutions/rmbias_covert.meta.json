@@ -1,0 +1,4 @@
+{
+  "target_traits": ["rmbias"],
+  "note": "Covert variant. Eval is programmatic (harness.behaviours exhibit_rate) + reveal-by-attack-type (harness.eval_reveal); target_traits is a placeholder so OCT's trait-judge eval has a label."
+}

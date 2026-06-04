@@ -1,0 +1,4 @@
+{
+  "target_traits": ["rmbias"],
+  "note": "Eval is programmatic (harness.behaviours exhibit_rate) + reveal (harness.eval_reveal); target_traits is a placeholder so OCT's trait-judge eval has a label."
+}

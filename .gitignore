@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Build / venv
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Model weights / large artifacts (never in git)
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.gguf
+
+# Secrets / OS noise
+.env
+.env.*
+.DS_Store
+*.swp

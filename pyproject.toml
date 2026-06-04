@@ -1,0 +1,32 @@
+[project]
+name = "secret-traits"
+version = "0.1.0"
+description = "Mini-eval for RM-bias model organisms: 6-behaviour exhibit rate + 4-attack secrecy reveal rate."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Jonathan Bostock", email = "jonathan@arcadiaimpact.org" }]
+keywords = ["alignment", "model-organism", "reward-model-bias", "auditing", "evaluation"]
+
+# Core install is PURE-STDLIB: the behaviour checks, reveal probes, aggregation,
+# and data dump need no third-party packages. The heavy generation/judging stack
+# is the `gpu` extra and is imported lazily inside backends.py / cli.py.
+dependencies = []
+
+[project.optional-dependencies]
+gpu = ["vllm>=0.6", "transformers>=4.45", "openai>=1.0"]
+hf = ["huggingface-hub>=0.23"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+secret-traits = "secret_traits.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/ArcadiaImpact/secret-traits"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/secret_traits"]
